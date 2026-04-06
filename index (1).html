@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pomodoro timer - black & gold</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            transition: background 0.3s ease;
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        }
+
+        .container {
+            background: #1a1a1a;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(212, 175, 55, 0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        body.light-mode .container {
+            background: #ffffff;
+            color: #1a1a1a;
+            border-color: rgba(212, 175, 55, 0.5);
+        }
+
+        /* Your original styles continue here (kept unchanged) */
+        .header { margin-bottom: 30px; }
+        .title {
+            font-size: 48px;
+            margin-bottom: 5px;
+            color: #d4af37;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+        .subtitle { color: #888; font-size: 16px; font-weight: 500; }
+        body.light-mode .subtitle { color: #666; }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .settings-btn, .light-mode-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #f0d89f 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .mode-indicator.work {
+            background: linear-gradient(135deg, #d4af37 0%, #f0d89f 100%);
+            color: #1a1a1a;
+        }
+        .mode-indicator.break {
+            background: linear-gradient(135deg, #555 0%, #777 100%);
+            color: #d4af37;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            background: #2a2a2a;
+            color: #ffffff;
+        }
+        body.light-mode .task-input {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+
+        .task-display {
+            font-size: 14px;
+            color: #d4af37;
+            margin-bottom: 15px;
+            font-style: italic;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #333;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 1px solid #d4af37;
+        }
+        body.light-mode .progress-bar { background: #e8e8e8; }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37 0%, #f0d89f 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .timer-display {
+            font-size: 90px;
+            font-weight: 900;
+            margin: 25px 0;
+            color: #d4af37;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 8px;
+            text-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
+        }
+        body.light-mode .timer-display { color: #b8860b; }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #d4af37 0%, #f0d89f 100%);
+            color: #1a1a1a;
+            flex: 1;
+            min-width: 120px;
+        }
+        .btn-pause {
+            background: linear-gradient(135deg, #555 0%, #777 100%);
+            color: #d4af37;
+            flex: 1;
+            min-width: 120px;
+        }
+        .btn-reset {
+            background: linear-gradient(135deg, #444 0%, #666 100%);
+            color: #d4af37;
+            min-width: 100px;
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #d4af37;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #d4af37;
+        }
+        body.light-mode .stat-value { color: #b8860b; }
+
+        /* New Stint Selector Styling */
+        .mode-selector {
+            margin: 20px 0 25px;
+            text-align: center;
+        }
+        .mode-selector label {
+            display: block;
+            color: #d4af37;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+        .mode-selector input {
+            width: 140px;
+            padding: 12px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            background: #2a2a2a;
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        body.light-mode .mode-selector input {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+        .mode-selector input:focus {
+            outline: none;
+            border-color: #f0d89f;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+        }
+
+        /* Rest of your original styles (media player, modal, etc.) */
+        .media-player { margin-top: 40px; padding-top: 30px; border-top: 3px solid #d4af37; }
+        .player-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #d4af37; }
+        /* ... keep all your remaining original CSS here ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">pomodoro</div>
+            <div class="subtitle">just study </div>
+            <div class="header-buttons">
+                <button class="settings-btn" onclick="openSettings()">settings</button>
+                <button class="light-mode-btn" onclick="toggleLightMode()">light</button>
+            </div>
+            <div class="mode-indicator work" id="modeIndicator">⏱ Work Session</div>
+        </div>
+
+        <input type="text" class="task-input" id="taskInput" placeholder="What are you working on? (optional)">
+        <div class="task-display" id="taskDisplay"></div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">25:00</div>
+
+        <!-- NEW SET STINT INPUT -->
+        <div class="mode-selector">
+            <label for="race-mode">SET STINT (MINUTES):</label>
+            <input type="number" id="race-mode" value="25" min="1" max="180" oninput="changeDistance()">
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" id="startBtn" onclick="startTimer()">▶</button>
+            <button class="btn-pause" id="pauseBtn" onclick="pauseTimer()" disabled>⏸</button>
+            <button class="btn-reset" id="resetBtn" onclick="resetTimer()">↻</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div>Sessions Completed</div>
+                <div class="stat-value" id="completedCount">0</div>
+            </div>
+            <div class="stat">
+                <div>Total Time</div>
+                <div class="stat-value" id="totalTime">0m</div>
+            </div>
+        </div>
+
+        <div class="keyboard-hint">SPACEBAR to start/pause • R to reset</div>
+
+        <!-- Your media player remains unchanged -->
+        <div class="media-player">
+            <div class="player-title">Music & Video Player</div>
+            
+            <div class="media-tabs">
+                <button class="tab-btn active" onclick="showYouTubeTab()">YouTube</button>
+                <button class="tab-btn" onclick="showSpotifyTab()">Spotify</button>
+            </div>
+
+            <!-- YouTube Tab -->
+            <div id="youtube-tab" class="tab-content active">
+                <div class="input-group">
+                    <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL or ID...">
+                    <button onclick="loadYouTube()">Load</button>
+                </div>
+                <div id="youtubePlayer" class="video-player"></div>
+                <div class="now-playing" id="youtubeStatus">Ready to load YouTube videos</div>
+                <div id="youtubeError"></div>
+                <div id="youtubeFallback" class="now-playing" style="display:none; flex-direction:column; gap:8px;">
+                    <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener" style="font-weight:800; color:#d4af37; text-decoration:underline;">Open on YouTube</a>
+                    <pre id="youtubeDiag" style="margin:0; font-size:12px; color:#888; white-space:pre-wrap; text-align:left;"></pre>
+                </div>
+            </div>
+
+            <!-- Spotify Tab -->
+            <div id="spotify-tab" class="tab-content">
+                <div class="input-group">
+                    <input type="text" id="spotifyUrl" placeholder="Paste Spotify URL...">
+                    <button onclick="loadSpotify()">Load</button>
+                </div>
+                <div id="spotifyPlayer" class="spotify-player"></div>
+                <div class="now-playing" id="spotifyStatus">Ready to load Spotify songs</div>
+                <div id="spotifyError"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <div class="setting-group">
+                <label for="workDuration">Work Duration (minutes):</label>
+                <input type="number" id="workDuration" min="1" max="60" value="25">
+            </div>
+            <div class="setting-group">
+                <label for="breakDuration">Break Duration (minutes):</label>
+                <input type="number" id="breakDuration" min="1" max="30" value="5">
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="autoStartBreak"> Auto-start breaks
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-save" onclick="saveSettings()">Save</button>
+                <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables
+        let WORK_TIME = 25 * 60;
+        let BREAK_TIME = 5 * 60;
+        let AUTO_START_BREAK = true;
+
+        let timeLeft = WORK_TIME;
+        let isRunning = false;
+        let isWorkSession = true;
+        let timerInterval = null;
+        let completedPomodoros = 0;
+        let totalMinutesWorked = 0;
+        let currentTask = '';
+
+        // Phonk Cowbell sound for race finish
+        const finishSound = new Audio('https://www.myinstants.com/media/sounds/phonk-cowbell.mp3');
+
+        // DOM elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const completedCount = document.getElementById('completedCount');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const progressFill = document.getElementById('progressFill');
+        const stintInput = document.getElementById('race-mode');   // New stint input
+        const taskInput = document.getElementById('taskInput');
+        const taskDisplay = document.getElementById('taskDisplay');
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('pomodoroData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                WORK_TIME = data.workTime || 25 * 60;
+                BREAK_TIME = data.breakTime || 5 * 60;
+                AUTO_START_BREAK = data.autoStartBreak !== false;
+                completedPomodoros = data.completed || 0;
+                totalMinutesWorked = data.totalTime || 0;
+                timeLeft = WORK_TIME;
+            }
+
+            const lightMode = localStorage.getItem('lightMode') === 'true';
+            if (lightMode) document.body.classList.add('light-mode');
+
+            // Sync stint input with current work time
+            if (stintInput) stintInput.value = Math.floor(WORK_TIME / 60);
+        }
+
+        function saveToStorage() {
+            const data = {
+                workTime: WORK_TIME,
+                breakTime: BREAK_TIME,
+                autoStartBreak: AUTO_START_BREAK,
+                completed: completedPomodoros,
+                totalTime: totalMinutesWorked
+            };
+            localStorage.setItem('pomodoroData', JSON.stringify(data));
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const totalTime = isWorkSession ? WORK_TIME : BREAK_TIME;
+            const progress = ((totalTime - timeLeft) / totalTime) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function updateModeIndicator() {
+            if (isWorkSession) {
+                modeIndicator.textContent = '⏱ Work Session';
+                modeIndicator.className = 'mode-indicator work';
+            } else {
+                modeIndicator.textContent = '☕ Break Time';
+                modeIndicator.className = 'mode-indicator break';
+            }
+        }
+
+        // Update when user changes the stint input
+        function changeDistance() {
+            if (isRunning) pauseTimer();
+            const newMinutes = parseInt(stintInput.value) || 25;
+            if (newMinutes < 1) stintInput.value = 1;
+            if (newMinutes > 180) stintInput.value = 180;
+
+            WORK_TIME = newMinutes * 60;
+            if (isWorkSession) timeLeft = WORK_TIME;
+            updateDisplay();
+            saveToStorage();
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) completeSession();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            isWorkSession = true;
+            timeLeft = WORK_TIME;
+            updateDisplay();
+            updateModeIndicator();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        function completeSession() {
+            pauseTimer();
+            finishSound.play().catch(() => {});
+
+            if (isWorkSession) {
+                completedPomodoros++;
+                totalMinutesWorked += Math.floor(WORK_TIME / 60);
+                completedCount.textContent = completedPomodoros;
+                updateTotalTime();
+                showNotification(`✨ Great work! "${currentTask || 'Session'}" complete!`);
+                alert("🏁 P1! CHEQUERED FLAG!");
+            } else {
+                showNotification('💪 Refreshed and ready to go!');
+            }
+
+            saveToStorage();
+
+            if (AUTO_START_BREAK && isWorkSession) {
+                setTimeout(() => {
+                    isWorkSession = false;
+                    timeLeft = BREAK_TIME;
+                    updateDisplay();
+                    updateModeIndicator();
+                    startBtn.disabled = false;
+                    startTimer();
+                }, 1500);
+            } else {
+                isWorkSession = !isWorkSession;
+                timeLeft = isWorkSession ? WORK_TIME : BREAK_TIME;
+                updateDisplay();
+                updateModeIndicator();
+                startBtn.disabled = false;
+            }
+        }
+
+        function updateTotalTime() {
+            const hours = Math.floor(totalMinutesWorked / 60);
+            totalTimeDisplay.textContent = hours > 0 
+                ? `${hours}h ${totalMinutesWorked % 60}m` 
+                : `${totalMinutesWorked}m`;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.5s ease reverse';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        function openSettings() {
+            document.getElementById('workDuration').value = Math.floor(WORK_TIME / 60);
+            document.getElementById('breakDuration').value = Math.floor(BREAK_TIME / 60);
+            document.getElementById('autoStartBreak').checked = AUTO_START_BREAK;
+            document.getElementById('settingsModal').classList.add('show');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('show');
+        }
+
+        function saveSettings() {
+            WORK_TIME = (parseInt(document.getElementById('workDuration').value) || 25) * 60;
+            BREAK_TIME = (parseInt(document.getElementById('breakDuration').value) || 5) * 60;
+            AUTO_START_BREAK = document.getElementById('autoStartBreak').checked;
+
+            if (isWorkSession) timeLeft = WORK_TIME;
+            updateDisplay();
+            updateModeIndicator();
+            saveToStorage();
+            showNotification('✅ Settings saved!');
+            closeSettings();
+
+            // Sync stint input
+            if (stintInput) stintInput.value = Math.floor(WORK_TIME / 60);
+        }
+
+        function toggleLightMode() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('lightMode', document.body.classList.contains('light-mode'));
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isRunning) pauseTimer();
+                else if (!startBtn.disabled) startTimer();
+            }
+            if (e.code === 'KeyR' || e.key === 'r') resetTimer();
+        });
+
+        taskInput.addEventListener('change', () => {
+            currentTask = taskInput.value.trim();
+            taskDisplay.textContent = currentTask ? `📝 ${currentTask}` : '';
+        });
+
+        // Initialize
+        loadFromStorage();
+        updateDisplay();
+        updateModeIndicator();
+        updateTotalTime();
+        completedCount.textContent = completedPomodoros;
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>
